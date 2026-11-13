@@ -1,0 +1,8 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+:root { --bg:#F7F8FA; --card:#FFFFFF; --ink:#17181C; --mute:#8A8D98; --line:#ECEDF1; }
+:root[data-theme="dark"] { --bg:#111318; --card:#1A1D24; --ink:#F3F4F7; --mute:#8A8D98; --line:#262A33; }
+html, body { background: var(--bg); color: var(--ink); -webkit-tap-highlight-color: transparent; }
+body { font-family: Inter, -apple-system, "SF Pro Display", "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
+.safe-b { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
+input { font-size: 16px; }
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
