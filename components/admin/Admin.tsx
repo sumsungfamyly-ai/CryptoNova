@@ -158,18 +158,18 @@ function Login({ onOk }: any) {
   const go = async () => { try { const r = await api("/auth/login", "POST", f); setCsrf(r.csrf); onOk(); } catch (e: any) { setErr(e.message); } };
   return (<div className="min-h-screen grid place-items-center p-4"><Card className="w-full max-w-sm space-y-3"><div className="text-xl font-semibold">CryptoNOVA <span className="text-brand">Admin</span></div>
     <Input className="w-full" placeholder="Email" onChange={(e: any) => setF({ ...f, email: e.target.value })} /><Input className="w-full" type="password" placeholder="Password" onChange={(e: any) => setF({ ...f, password: e.target.value })} />
-    <Input className="w-full" placeholder="6-digit MFA code" inputMode="numeric" onChange={(e: any) => setF({ ...f, totp: e.target.value })} onKeyDown={(e: any) => e.key === "Enter" && go()} />
+    <Input className="w-full" placeholder="6-digit code (leave empty if you skipped MFA)" inputMode="numeric" onChange={(e: any) => setF({ ...f, totp: e.target.value })} onKeyDown={(e: any) => e.key === "Enter" && go()} />
     {err && <div className="text-bad text-sm">{err}</div>}<Btn onClick={go}>Sign in</Btn></Card></div>);
 }
 
 /** First launch only: creates the OWNER in the browser. Proof of ownership = BOT_TOKEN; MFA is confirmed with a real code. */
 function Setup({ onDone }: any) {
-  const [f, setF] = useState({ bot_token: "", email: "", password: "" }); const [step, setStep] = useState(0); const [data, setData] = useState<any>(null);
+  const [f, setF] = useState({ bot_token: "", email: "", password: "", skip_mfa: false }); const [step, setStep] = useState(0); const [data, setData] = useState<any>(null);
   const [code, setCode] = useState(""); const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
   const start = async () => { setErr("");
     if (!f.email.includes("@")) return setErr("Enter a valid email");
     if (f.password.length < 12) return setErr("Password must be at least 12 characters");
-    setBusy(true); try { setData(await api("/setup/start", "POST", f)); setStep(1); } catch (e: any) { setErr(e.message === "wrong bot token" ? "Wrong bot token" : e.message); } finally { setBusy(false); } };
+    setBusy(true); try { const r = await api("/setup/start", "POST", f); if (r.done) { setStep(2); } else { setData(r); setStep(1); } } catch (e: any) { setErr(e.message === "wrong bot token" ? "Wrong bot token" : e.message); } finally { setBusy(false); } };
   const finish = async () => { setErr(""); setBusy(true);
     try { await api("/setup/finish", "POST", { ticket: data.ticket, code }); setStep(2); } catch (e: any) { setErr(e.message); } finally { setBusy(false); } };
   return (<div className="min-h-screen grid place-items-center p-4"><Card className="w-full max-w-md space-y-3">
@@ -178,6 +178,7 @@ function Setup({ onDone }: any) {
       <Input className="w-full" type="password" placeholder="Bot token (from @BotFather)" onChange={(e: any) => setF({ ...f, bot_token: e.target.value })} />
       <Input className="w-full" placeholder="Your email" onChange={(e: any) => setF({ ...f, email: e.target.value })} />
       <Input className="w-full" type="password" placeholder="Password (12+ characters)" onChange={(e: any) => setF({ ...f, password: e.target.value })} />
+      <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={f.skip_mfa} onChange={(e) => setF({ ...f, skip_mfa: e.target.checked })} /><span>Skip the authenticator app <span className="text-mute">(less secure: you will sign in with the password only, so use a long one)</span></span></label>
       {err && <div className="text-bad text-sm">{err}</div>}<Btn disabled={busy} onClick={start}>Continue</Btn></>}
     {step === 1 && <><div className="text-sm text-mute">Scan this QR code in Google Authenticator / Authy (or enter the key manually), then type the 6-digit code.</div>
       <div className="grid place-items-center bg-white rounded-xl p-3"><QRCodeSVG value={data.otpauth} size={170} /></div>

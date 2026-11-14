@@ -50,6 +50,7 @@ class SetupStart(BaseModel):
     bot_token: str = Field(min_length=10, max_length=200)
     email: EmailStr
     password: str = Field(min_length=12, max_length=256)
+    skip_mfa: bool = False  # explicit opt-out: sign in with the password only
 
 
 @router.post("/setup/start")
@@ -63,6 +64,16 @@ async def setup_start(b: SetupStart, request: Request, s: AsyncSession = Depends
         raise HTTPException(409, "owner already exists")
     if not settings.bot_token or not hmac.compare_digest(b.bot_token.strip().encode(), settings.bot_token.encode()):
         raise HTTPException(403, "wrong bot token")
+    if b.skip_mfa:  # no authenticator: create the owner right away
+        await s.execute(text("select pg_advisory_xact_lock(727003)"))
+        if not await _no_admins(s):
+            raise HTTPException(409, "owner already exists")
+        role = (await s.execute(select(AdminRole).where(AdminRole.name == "OWNER"))).scalar_one()
+        a = Admin(email=b.email.lower(), password_hash=hash_password(b.password), role_id=role.id, mfa_enabled=False)
+        s.add(a); await s.flush()
+        await audit(s, None, "owner_created_without_mfa", "admin", a.id, admin_id=a.id, ip=client_ip(request))
+        await s.commit()
+        return {"done": True}
     secret = new_totp_secret()
     email = b.email.lower()
     ticket = create_token(json.dumps({"e": email, "p": hash_password(b.password), "s": secret}), settings.secret_key, 900)
@@ -118,8 +129,6 @@ async def login(b: Login, request: Request, response: Response, s: AsyncSession 
     if not (a and ok and a.status == "active"):
         await audit(s, None, "admin_login_failed", "admin", b.email.lower(), ip=ip); await s.commit()
         raise HTTPException(401, "invalid credentials")
-    if role.name == "OWNER" and not a.mfa_enabled:
-        raise HTTPException(403, "MFA must be enabled for OWNER")
     if a.mfa_enabled and not verify_totp(a.mfa_secret or "", b.totp):
         await audit(s, None, "admin_mfa_failed", "admin", a.id, admin_id=a.id, ip=ip); await s.commit()
         raise HTTPException(401, "invalid credentials")
