@@ -4,6 +4,7 @@ from novaapi.models import Base
 
 TYPES = "('transfer','admin_credit','admin_debit','issuance','initial_grant','fee','swap_in','swap_out')"
 STATEMENTS = [
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'en'",
     """CREATE OR REPLACE FUNCTION ledger_zero_sum_check() RETURNS trigger AS $$
     BEGIN
       IF EXISTS (SELECT 1 FROM ledger_entries WHERE transaction_id = NEW.transaction_id

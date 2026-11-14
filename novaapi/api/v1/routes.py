@@ -32,7 +32,7 @@ class TransferIn(BaseModel):
 
 def user_out(u: User) -> dict:
     return {"id": str(u.id), "telegram_id": u.telegram_id, "username": u.username, "first_name": u.first_name,
-            "photo_url": u.photo_url, "status": u.status, "registered_at": u.created_at.isoformat()}
+            "photo_url": u.photo_url, "language": u.language, "status": u.status, "registered_at": u.created_at.isoformat()}
 
 
 def asset_out(a: Asset) -> dict:
@@ -59,6 +59,17 @@ async def me(u: User = Depends(current_user), s: AsyncSession = Depends(get_sess
     n = (await s.execute(select(func.count()).select_from(Transaction).join(Wallet, or_(
         Wallet.id == Transaction.from_wallet_id, Wallet.id == Transaction.to_wallet_id)).where(Wallet.user_id == u.id))).scalar_one()
     return {**user_out(u), "transactions": n}
+
+
+class LangIn(BaseModel):
+    language: str = Field(pattern="^(ru|en)$")
+
+
+@router.put("/users/me/language")
+async def set_language(b: LangIn, u: User = Depends(current_user), s: AsyncSession = Depends(get_session)):
+    u.language = b.language
+    await s.commit()
+    return {"language": b.language}
 
 
 @router.get("/users/lookup")

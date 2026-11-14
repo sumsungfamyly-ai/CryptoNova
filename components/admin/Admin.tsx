@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, Bell, Coins, FileText, Gem, LogOut, Settings as Cog, Shield, Users as UsersIcon, Wallet as WalletIcon, ArrowLeftRight } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import LangSwitch from "../LangSwitch";
 import { api, money, setCsrf } from "../../lib/adminApi";
 
 const COLORS = ["#705CF6", "#20B982", "#F7A23B", "#4B5BD8", "#E65A65", "#8A8D98"];
@@ -156,7 +157,7 @@ const NAV: [string, string, any, string, any][] = [["Dashboard", "dashboard.view
 function Login({ onOk }: any) {
   const [f, setF] = useState({ email: "", password: "", totp: "" }); const [err, setErr] = useState("");
   const go = async () => { try { const r = await api("/auth/login", "POST", f); setCsrf(r.csrf); onOk(); } catch (e: any) { setErr(e.message); } };
-  return (<div className="min-h-screen grid place-items-center p-4"><Card className="w-full max-w-sm space-y-3"><div className="text-xl font-semibold">CryptoNOVA <span className="text-brand">Admin</span></div>
+  return (<div className="min-h-screen grid place-items-center p-4"><Card className="w-full max-w-sm space-y-3"><div className="flex items-center justify-between"><div className="text-xl font-semibold">CryptoNOVA <span className="text-brand">Admin</span></div><LangSwitch /></div>
     <Input className="w-full" placeholder="Email" onChange={(e: any) => setF({ ...f, email: e.target.value })} /><Input className="w-full" type="password" placeholder="Password" onChange={(e: any) => setF({ ...f, password: e.target.value })} />
     <Input className="w-full" placeholder="6-digit code (leave empty if you skipped MFA)" inputMode="numeric" onChange={(e: any) => setF({ ...f, totp: e.target.value })} onKeyDown={(e: any) => e.key === "Enter" && go()} />
     {err && <div className="text-bad text-sm">{err}</div>}<Btn onClick={go}>Sign in</Btn></Card></div>);
@@ -173,7 +174,7 @@ function Setup({ onDone }: any) {
   const finish = async () => { setErr(""); setBusy(true);
     try { await api("/setup/finish", "POST", { ticket: data.ticket, code }); setStep(2); } catch (e: any) { setErr(e.message); } finally { setBusy(false); } };
   return (<div className="min-h-screen grid place-items-center p-4"><Card className="w-full max-w-md space-y-3">
-    <div className="text-xl font-semibold">CryptoNOVA <span className="text-brand">Setup</span></div>
+    <div className="flex items-center justify-between"><div className="text-xl font-semibold">CryptoNOVA <span className="text-brand">Setup</span></div><LangSwitch /></div>
     {step === 0 && <><div className="text-sm text-mute">First launch: create the owner account. Paste the bot token from @BotFather to confirm you are the owner of this deployment.</div>
       <Input className="w-full" type="password" placeholder="Bot token (from @BotFather)" onChange={(e: any) => setF({ ...f, bot_token: e.target.value })} />
       <Input className="w-full" placeholder="Your email" onChange={(e: any) => setF({ ...f, email: e.target.value })} />
@@ -198,6 +199,7 @@ export default function Admin() {
   const can = (p: string) => me.permissions.includes(p); const items = NAV.filter(([, p]) => can(p)); const cur = items.find(([n]) => n === tab) || items[0]; const View = cur[4];
   return (<div className="min-h-screen flex"><aside className="w-60 shrink-0 bg-graphite text-white p-4 hidden md:flex flex-col"><div className="text-lg font-semibold mb-6">CryptoNOVA <span className="text-brand">Admin</span></div>
     <nav className="space-y-1 flex-1">{items.map(([n, , I]) => <button key={n} onClick={() => setTab(n)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm ${cur[0] === n ? "bg-brand" : "hover:bg-white/10 text-white/80"}`}><I size={17} />{n}</button>)}</nav>
+    <div className="mb-3"><LangSwitch /></div>
     <div className="text-xs text-white/60 mb-2">{me.email}<br />{me.role}</div>
     <button onClick={async () => { await api("/auth/logout", "POST"); setMe(null); }} className="flex items-center gap-2 text-sm text-white/80"><LogOut size={16} />Sign out</button></aside>
     <main className="flex-1 p-6 max-w-[1400px]"><div className="md:hidden mb-3"><select className="w-full px-3 py-2 rounded-xl border border-line" value={cur[0]} onChange={(e) => setTab(e.target.value)}>{items.map(([n]) => <option key={n}>{n}</option>)}</select></div>

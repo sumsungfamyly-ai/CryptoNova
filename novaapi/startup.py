@@ -8,7 +8,7 @@ from novaapi.core.db import SessionLocal, engine
 from novaapi.db_init import init_db
 from novaapi.services import market_live
 
-SCHEMA_VERSION = "2"  # bump when models/constraints change: triggers an idempotent upgrade on the next start
+SCHEMA_VERSION = "3"  # bump when models/constraints change: triggers an idempotent upgrade on the next start
 _ready = False
 
 

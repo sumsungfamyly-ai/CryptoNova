@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from novaapi.core.config import settings
+from novaapi.i18n import lang_of
 from novaapi.models import Asset, Balance, Transaction, User, Wallet, NotificationPreference
 from novaapi.services import ledger, notify
 
@@ -39,7 +40,7 @@ async def get_or_create_user(s: AsyncSession, tg: dict) -> tuple[User, bool]:
         await s.flush()
         return user, False
     user = User(telegram_id=tid, username=tg.get("username"), first_name=tg.get("first_name"),
-                photo_url=tg.get("photo_url"))
+                photo_url=tg.get("photo_url"), language=lang_of(tg.get("language_code")))
     s.add(user); await s.flush()
     wallet = Wallet(user_id=user.id, public_id="NW-" + "".join(secrets.choice(ALPHABET) for _ in range(10)))
     s.add_all([wallet, NotificationPreference(user_id=user.id)]); await s.flush()

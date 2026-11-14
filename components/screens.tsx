@@ -4,6 +4,7 @@ import { ArrowDownLeft, ArrowUpRight, Activity as Act, Copy, Layers, Repeat, Sea
 import { QRCodeSVG } from "qrcode.react";
 import { api, fmt, tg, usd } from "../lib/api";
 import { AssetIcon, Card, Change, Chart, DemoTag, Empty, ErrorBox, NovaLogo, RangeTabs, Sheet, Skeleton } from "./ui";
+import LangSwitch from "./LangSwitch";
 
 export function useLoad<T>(path: string, deps: any[] = []) {
   const [d, setD] = useState<T | null>(null); const [err, setErr] = useState(""); const [n, setN] = useState(0);
@@ -98,6 +99,7 @@ export function Profile({ me, theme, setTheme, reload }: any) {
       <Row l="Registered" v={me && new Date(me.registered_at).toLocaleDateString()} /><Row l="Operations" v={me?.transactions} /></Card>
     <Card><div className="font-medium mb-2">Settings</div>
       <div className="flex justify-between items-center py-2"><span>Dark theme</span><Tog on={theme === "dark"} f={() => setTheme(theme === "dark" ? "light" : "dark")} /></div>
+      <div className="flex justify-between items-center py-2"><span>Language</span><LangSwitch onChange={(l) => { api("/users/me/language", { method: "PUT", body: JSON.stringify({ language: l }) }).catch(() => {}); }} /></div>
       <div className="flex justify-between items-center py-2"><span>Transfer notifications</span><Tog on={prefs.transfers} f={() => save({ ...prefs, transfers: !prefs.transfers })} /></div>
       <div className="flex justify-between items-center py-2"><span>Announcements</span><Tog on={prefs.announcements} f={() => save({ ...prefs, announcements: !prefs.announcements })} /></div>
       <div className="text-xs text-mute mt-1">Critical system notices are always delivered.</div></Card>

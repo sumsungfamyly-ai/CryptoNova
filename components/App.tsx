@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Home as HomeIcon, LineChart, User as UserIcon, Wallet as WalletIcon, Activity as ActIcon } from "lucide-react";
 import { api, login, tg } from "../lib/api";
+import { setLang } from "../lib/i18n";
 import { Activity, AssetSheet, Home, Markets, Profile, ReceiveSheet, SendSheet, SwapSheet, WalletScreen, useLoad } from "./screens";
 import { ErrorBox, NovaLogo, Skeleton } from "./ui";
 
@@ -14,7 +15,7 @@ export default function App() {
   useEffect(() => { document.documentElement.dataset.theme = theme; tg()?.setHeaderColor?.(theme === "dark" ? "#111318" : "#F7F8FA"); }, [theme]);
   const reload = useCallback(async () => {
     const [p, t, a, m] = await Promise.all([api("/portfolio"), api("/transactions?limit=20"), api("/assets"), api("/users/me")]);
-    setPf(p); setTxs(t); setAssets(a); setMe(m); }, []);
+    setPf(p); setTxs(t); setAssets(a); setMe(m); if (m.language) setLang(m.language); }, []);
   useEffect(() => { (async () => {
     try { tg()?.ready(); tg()?.expand(); setTheme(tg()?.colorScheme === "dark" ? "dark" : "light"); await login(); await reload(); setReady(true); }
     catch (e: any) { setFatal(e.message === "not_in_telegram" ? "Please open CryptoNOVA from Telegram." : "Could not sign in. Please reopen the app."); } })(); }, [reload]);

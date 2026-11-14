@@ -13,6 +13,7 @@ class User(Base, IdMixin, TimestampMixin):
     username: Mapped[str | None] = mapped_column(String(64), index=True)
     first_name: Mapped[str | None] = mapped_column(String(128))
     photo_url: Mapped[str | None] = mapped_column(String(512))
+    language: Mapped[str] = mapped_column(String(5), default="en", server_default="en", nullable=False)  # ru | en (bot + Mini App)
     status: Mapped[str] = mapped_column(String(16), default="active", server_default="active", nullable=False)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     admin_note: Mapped[str | None] = mapped_column(Text)
