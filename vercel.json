@@ -1,4 +1,3 @@
 {
-  "crons": [{ "path": "/internal/cron", "schedule": "0 6 * * *" }],
-  "functions": { "api/index.py": { "maxDuration": 30, "includeFiles": "novaapi/**" } }
+  "crons": [{ "path": "/internal/cron", "schedule": "0 6 * * *" }]
 }
